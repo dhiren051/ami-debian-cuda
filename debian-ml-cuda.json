@@ -1,0 +1,56 @@
+{
+  "variables":  {
+    "distro":           "debian",
+    "system-name":      "debian-penseur",
+    "ami_description":  "GOLDEN_IMAGE",
+    "myAWSRegion":      "us-west-2",
+    "ssh_username":     "admin"
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "source_ami_filter": {
+        "filters": {
+          "name":                 "debian-docker",
+          "architecture":         "x86_64",
+          "virtualization-type":  "hvm",
+          "root-device-type":     "ebs"
+        },
+        "owners": ["self"],
+        "most_recent": true
+      },
+      "ami_description":    "{{user `ami_description`}}",
+      "ssh_pty":            true,
+      "ami_name":           "{{user `system-name`}}",
+      "ssh_username":       "{{user `ssh_username`}}",
+      "region":             "{{user `myAWSRegion`}}",
+      "instance_type":      "t2.micro",
+      "force_deregister":   true,
+      "tags": {
+        "purpose":  "machine-learning",
+        "type":     "os",
+        "Distro":   "Debian",
+        "Platform": "Linux",
+        "vers":     "9",
+        "cname":    "stretch",
+        "release":  "GA",
+        "Name":     "{{user `system-name`}}"
+      }
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "HOME_DIR=/home/admin",
+        "backupDir=/home/admin/backup"
+      ],
+      "execute_command": "echo 'admin' | {{.Vars}} sudo -S -E bash '{{.Path}}'",
+      "scripts": [
+        "scripts/update.sh",
+        "scripts/cleanup.sh",
+        "scripts/minimize.sh"
+      ]
+    }
+  ]
+}
